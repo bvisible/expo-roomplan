@@ -30,6 +30,11 @@ export interface RoomPlanViewProps extends ViewProps {
   // If true (default), finish will also export the result once ready
   /** When true, finishing a capture automatically exports once preview is shown. */
   exportOnFinish?: boolean;
+  /**
+   * Bump to capture the current camera target (~1.5 m forward) as a world-space
+   * position. Emits `onAnnotateTap` so the JS side can open an annotation UI.
+   */
+  annotateTrigger?: number;
   /** Standard React Native style prop. */
   style?: StyleProp<ViewStyle>;
   /** Receives status updates such as OK, Error, and Canceled. */
@@ -41,5 +46,25 @@ export interface RoomPlanViewProps extends ViewProps {
   /** Emitted after export; includes file URLs when `sendFileLoc` is true. */
   onExported?: (e: {
     nativeEvent: { scanUrl?: string; jsonUrl?: string };
+  }) => void;
+  /** Emitted after `annotateTrigger` is bumped, with world-space coordinates. */
+  onAnnotateTap?: (e: {
+    nativeEvent: {
+      x: number;
+      y: number;
+      z: number;
+      // Surface normal at the hit point — useful for snapping the annotation
+      // to the right wall later (a parallel wall has a similar normal).
+      nx?: number;
+      ny?: number;
+      nz?: number;
+      cameraX?: number;
+      cameraY?: number;
+      cameraZ?: number;
+      hitKind?: string;
+      screenX?: number;
+      screenY?: number;
+      error?: string;
+    };
   }) => void;
 }

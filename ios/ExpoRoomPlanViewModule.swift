@@ -9,7 +9,7 @@ public class ExpoRoomPlanViewModule: Module {
 
     // Register a React Native view that embeds RoomCaptureView
     View(RoomPlanCaptureUIView.self) {
-      Events("onStatus", "onExported", "onPreview")
+      Events("onStatus", "onExported", "onPreview", "onAnnotateTap")
 
       // Props to control flow
       Prop("scanName") { (view, value: String?) in
@@ -38,6 +38,11 @@ public class ExpoRoomPlanViewModule: Module {
       // Continue scanning and add another room to the set
       Prop("addAnotherTrigger") { (view, value: Double?) in
         view.handleAddAnotherTrigger(value)
+      }
+      // Bump to capture the camera target as an annotation position; emits
+      // `onAnnotateTap` with world-space coordinates.
+      Prop("annotateTrigger") { (view, value: Double?) in
+        view.handleAnnotateTrigger(value)
       }
     }
   }

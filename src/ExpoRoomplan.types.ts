@@ -17,8 +17,22 @@ export interface UseRoomPlanParams {
 }
 
 export interface ExpoRoomPlanModuleType {
+  // Sync — true only on devices with LiDAR (Apple's RoomCaptureSession.isSupported).
+  isSupported(): boolean;
   startCapture(scanName: string, exportType: ExportType, sendFileLoc: boolean): Promise<void>;
   stopCapture(): Promise<void>;
+  presentQuickLook(filePath: string): Promise<void>;
+  presentSceneViewer(
+    filePath: string,
+    annotations: {
+      x: number;
+      y: number;
+      z: number;
+      content: string;
+      kind: string;
+      photoPath?: string;
+    }[]
+  ): Promise<void>;
   // test
   addListener?(eventName: string, listener: (event: any) => void): { remove: () => void };
   removeListeners?(count: number): void;
