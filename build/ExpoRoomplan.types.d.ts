@@ -15,6 +15,7 @@ export interface UseRoomPlanParams {
 }
 export interface ExpoRoomPlanModuleType {
     isSupported(): boolean;
+    exportGLB(usdzPath: string, outPath: string): Promise<string>;
     startCapture(scanName: string, exportType: ExportType, sendFileLoc: boolean): Promise<void>;
     stopCapture(): Promise<void>;
     presentQuickLook(filePath: string): Promise<void>;

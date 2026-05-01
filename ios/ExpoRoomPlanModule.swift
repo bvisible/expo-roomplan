@@ -1,4 +1,5 @@
 import ExpoModulesCore
+import ModelIO
 import QuickLook
 import RoomPlan
 import SceneKit
@@ -352,6 +353,46 @@ public class ExpoRoomPlanModule: Module {
         // unsupported devices.
         Function("isSupported") { () -> Bool in
             return RoomCaptureSession.isSupported
+        }
+
+        // Convert a USDZ produced by RoomPlan into a glTF binary (.glb) on
+        // device using ModelIO. Apple's ModelIO supports USD/OBJ/PLY natively
+        // and the export format is inferred from the URL extension. glTF/GLB
+        // export availability is not officially documented for iOS — we guard
+        // with `canExport(toExtension:)` and surface a clear error to JS so
+        // the caller can fall back without crashing the scan flow.
+        AsyncFunction("exportGLB") { (usdzPath: String, outPath: String, promise: Promise) in
+            let normalizedIn = usdzPath.hasPrefix("file://")
+                ? String(usdzPath.dropFirst("file://".count))
+                : usdzPath
+            let normalizedOut = outPath.hasPrefix("file://")
+                ? String(outPath.dropFirst("file://".count))
+                : outPath
+            let inUrl = URL(fileURLWithPath: normalizedIn)
+            let outUrl = URL(fileURLWithPath: normalizedOut)
+
+            guard FileManager.default.fileExists(atPath: inUrl.path) else {
+                promise.reject("EXPORT_GLB_INPUT_MISSING",
+                               "Input USDZ does not exist at \(inUrl.path)")
+                return
+            }
+
+            // Probe whether ModelIO accepts the requested extension. If false,
+            // fail fast with a typed error so callers can handle it cleanly.
+            if !MDLAsset.canExportFileExtension("glb") {
+                promise.reject("EXPORT_GLB_UNSUPPORTED",
+                               "ModelIO cannot export to glb on this iOS version")
+                return
+            }
+
+            do {
+                let asset = MDLAsset(url: inUrl)
+                try asset.export(to: outUrl)
+                promise.resolve(outUrl.path)
+            } catch {
+                promise.reject("EXPORT_GLB_FAILED",
+                               "ModelIO export failed: \(error.localizedDescription)")
+            }
         }
 
         AsyncFunction("startCapture") {
